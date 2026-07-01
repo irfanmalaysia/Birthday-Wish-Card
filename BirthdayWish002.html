@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hi Princess 🎀</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+
+  @keyframes pop{0%{transform:scale(.84);opacity:0}60%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+  @keyframes confettiBounce{0%{transform:scale(0) rotate(0deg);opacity:0}50%{opacity:1}100%{transform:scale(1) rotate(360deg);opacity:.75}}
+  @keyframes pulseHeart{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+  @keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+  #bg{position:fixed;inset:0;background:#fff0f5;font-family:'Nunito',sans-serif;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  #screenHost{display:contents}
+
+  .btn-main{border:none;border-radius:50px;background:linear-gradient(135deg,#f06292,#e91e63);color:white;font-family:'Nunito',sans-serif;font-weight:800;cursor:pointer;box-shadow:0 10px 22px rgba(233,30,99,.35);letter-spacing:.3px}
+  .btn-outline{padding:11px 28px;border:2px solid #f06292;border-radius:50px;background:transparent;color:#e91e63;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="bg">
+  <div id="screenHost"></div>
+</div>
+
+<script>
+(function(){
+  var CONFIG = {
+    name: 'Bella',
+    password: '23061999',
+    letter: "If I could hold every moment we've shared\nand press them into the pages of a book,\nI'd read it every single day.\n\nYou laugh like the world invented joy just for you.\nYou love like it costs you nothing,\nyet somehow it means everything.\n\nOn days the sky feels heavy,\nyou are the reason I look up.\n\nSo today, on your birthday,\nI want you to know — you are seen.\nEvery small kindness, every quiet strength,\nevery stubborn, beautiful part of you.\n\nI see it all. And I'm so grateful for every bit of it.\n\nHappy birthday, love.\nStay soft. Stay you. 🤍",
+    finalMessage: "I love you so much and I hope\nto spend my days with you\nfor the rest of my life 🤍",
+    songName: 'Partners in Crime',
+    songArtist: 'Set It Off ft. Ash Costello',
+    songEmoji: '🎵'
+  };
+
+  var FLOW = ['greeting','password','unwrap','confetti','envelope','letter','song','final'];
+
+  var state = {
+    screen: 'greeting',
+    pin: '',
+    wrong: false,
+    taps: 0,
+    giftScale: 1,
+    envelopeOpen: false
+  };
+
+  var CAT_LOVE = '<svg viewBox="0 0 200 190" fill="none" style="width:100%;height:100%;overflow:visible">' +
+    '<path d="M30 40 q4 -8 8 0 q4 -8 8 0 q0 8 -8 14 q-8 -6 -8 -14 Z" fill="#ff6b9d"/>' +
+    '<path d="M156 30 q4 -8 8 0 q4 -8 8 0 q0 8 -8 14 q-8 -6 -8 -14 Z" fill="#ff6b9d"/>' +
+    '<path d="M64 56 L50 22 Q74 30 88 48 Z" fill="#74cce0" stroke="#173a5e" stroke-width="6" stroke-linejoin="round"/>' +
+    '<path d="M136 56 L150 22 Q126 30 112 48 Z" fill="#74cce0" stroke="#173a5e" stroke-width="6" stroke-linejoin="round"/>' +
+    '<path d="M70 44 L62 28 Q74 32 82 43 Z" fill="#f4a6c0"/>' +
+    '<path d="M130 44 L138 28 Q126 32 118 43 Z" fill="#f4a6c0"/>' +
+    '<rect x="36" y="52" width="128" height="100" rx="48" fill="#74cce0" stroke="#173a5e" stroke-width="6"/>' +
+    '<ellipse cx="58" cy="118" rx="13" ry="9" fill="#f4a6c0" opacity=".85"/>' +
+    '<ellipse cx="142" cy="118" rx="13" ry="9" fill="#f4a6c0" opacity=".85"/>' +
+    '<path d="M58 104 Q70 88 82 104" stroke="#173a5e" stroke-width="6" stroke-linecap="round"/>' +
+    '<path d="M118 104 Q130 88 142 104" stroke="#173a5e" stroke-width="6" stroke-linecap="round"/>' +
+    '<path d="M88 116 q6 -8 12 0 q6 -8 12 0 q0 9 -12 16 q-12 -7 -12 -16 Z" fill="#ff6b9d" stroke="#173a5e" stroke-width="3" stroke-linejoin="round"/>' +
+    '</svg>';
+
+  function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function dateDisplay(){
+    var d = (state.pin + '________').slice(0,8).split('');
+    return d[0]+d[1]+'/'+d[2]+d[3]+'/'+d[4]+d[5]+d[6]+d[7];
+  }
+
+  // ── SCREENS ──────────────────────────────────────────────────────
+
+  function screenGreeting(){
+    return '<div style="animation:pop .5s ease both;display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;padding:40px 28px">' +
+      '<div style="font-size:30px;font-weight:900;color:#e91e63;letter-spacing:-.5px">Hi Princess 🎀</div>' +
+      '<div style="width:200px;height:188px;animation:bob 3s ease-in-out infinite">' + CAT_LOVE + '</div>' +
+      '<div style="font-size:17px;color:#c2185b;font-weight:600;max-width:270px;line-height:1.6">I made something really special just for you 🤍</div>' +
+      '<button id="btnNext" class="btn-main" style="margin-top:6px;padding:15px 44px;font-size:17px">Open it 💌</button>' +
+    '</div>';
+  }
+
+  function screenPassword(){
+    var dd = dateDisplay();
+    var dotsHtml = '';
+    for (var i = 0; i < 8; i++){
+      dotsHtml += '<span style="font-size:15px">' + (i < state.pin.length ? '❤️' : '🤍') + '</span>';
+    }
+    var keys = ['1','2','3','4','5','6','7','8','9','','0','del'];
+    var keysHtml = keys.map(function(k){
+      if (k === '') return '<button class="key-blank" disabled style="height:62px;border:none;background:transparent;visibility:hidden"></button>';
+      var label = k === 'del' ? '⌫' : k;
+      return '<button class="key" data-k="' + k + '" style="height:62px;border:none;border-radius:50px;background:#fce4ec;color:#c2185b;font-family:\'Nunito\',sans-serif;font-size:24px;font-weight:800;cursor:pointer;box-shadow:0 3px 0 #f8bbd0">' + label + '</button>';
+    }).join('');
+    return '<div style="animation:pop .45s ease both;display:flex;flex-direction:column;align-items:center;gap:20px;width:100%;padding:32px 20px">' +
+      '<div style="background:white;border-radius:26px;padding:28px 22px 24px;box-shadow:0 10px 28px rgba(233,30,99,.13);width:100%;max-width:340px;text-align:center">' +
+        '<div style="font-size:21px;font-weight:900;color:#c2185b;margin-bottom:3px">Enter the Special Date</div>' +
+        '<div style="font-size:12px;color:#f48fb1;font-weight:700;letter-spacing:1.5px;margin-bottom:20px">DD / MM / YYYY</div>' +
+        '<div id="dateDisplay" style="font-size:28px;font-weight:800;color:#e91e63;letter-spacing:5px;font-variant-numeric:tabular-nums;margin-bottom:18px' + (state.wrong ? ';animation:shake .55s ease' : '') + '">' + escHtml(dd) + '</div>' +
+        '<div id="heartDots" style="display:flex;gap:7px;justify-content:center">' + dotsHtml + '</div>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:11px;width:100%;max-width:300px">' + keysHtml + '</div>' +
+      '<div style="font-size:13px;color:#f48fb1;font-weight:600;font-style:italic">clue: your birthday 🎂</div>' +
+    '</div>';
+  }
+
+  function screenUnwrap(){
+    var pct = Math.min(state.taps / 21 * 100, 100).toFixed(1) + '%';
+    var scale = state.giftScale || 1;
+    return '<div style="animation:pop .45s ease both;display:flex;flex-direction:column;align-items:center;gap:32px;padding:40px 24px;text-align:center">' +
+      '<div style="font-size:14px;font-weight:800;color:#f48fb1;letter-spacing:.5px">Tap to unwrap! ' + state.taps + '/21</div>' +
+      '<div id="giftBox" style="position:relative;width:190px;height:190px;cursor:pointer;user-select:none;-webkit-user-select:none;transform:scale(' + scale + ');transition:transform .12s ease">' +
+        '<div style="position:absolute;bottom:0;left:5px;right:5px;height:160px;background:#c084fc;border-radius:6px 6px 12px 12px;box-shadow:0 14px 32px rgba(192,132,252,.45)">' +
+          '<div style="position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);width:26px;background:#9333ea;border-radius:3px"></div>' +
+          '<div style="position:absolute;top:50%;left:0;right:0;height:26px;transform:translateY(-50%);background:#9333ea;border-radius:3px"></div>' +
+        '</div>' +
+        '<div style="position:absolute;top:28px;left:0;right:0;height:38px;background:#c084fc;border-radius:8px;box-shadow:0 4px 14px rgba(192,132,252,.35)">' +
+          '<div style="position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);width:26px;background:#9333ea;border-radius:3px"></div>' +
+        '</div>' +
+        '<div style="position:absolute;top:2px;left:50%;transform:translateX(-110%) rotate(-28deg);transform-origin:right center;width:42px;height:28px;background:#fbbf24;border-radius:50% 0 50% 50%"></div>' +
+        '<div style="position:absolute;top:2px;left:50%;transform:translateX(10%) rotate(28deg);transform-origin:left center;width:42px;height:28px;background:#fbbf24;border-radius:0 50% 50% 50%"></div>' +
+        '<div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);width:18px;height:18px;background:#f59e0b;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.15)"></div>' +
+      '</div>' +
+      '<div style="width:220px;height:7px;background:#fce4ec;border-radius:99px;overflow:hidden">' +
+        '<div style="height:100%;width:' + pct + ';background:linear-gradient(90deg,#f48fb1,#e91e63);border-radius:99px;transition:width .18s ease"></div>' +
+      '</div>' +
+      '<div style="font-size:15px;color:#f06292;font-weight:700">keep tapping! 🎁</div>' +
+    '</div>';
+  }
+
+  function confettiItems(){
+    var colors = ['#f472b6','#c084fc','#93c5fd','#fb7185','#fbbf24','#a78bfa','#86efac','#f9a8d4'];
+    var html = '';
+    for (var i = 0; i < 52; i++){
+      var left = ((i * 23.7 + 5) % 100).toFixed(1) + '%';
+      var top  = ((i * 17.3 + 8) % 100).toFixed(1) + '%';
+      var color = colors[(i * 7) % 8];
+      var size = (8 + (i * 3) % 13) + 'px';
+      var radius = i % 3 === 0 ? '3px' : '50%';
+      var delay = ((i * 0.09) % 0.65).toFixed(2) + 's';
+      var dur   = (0.7 + (i * 0.06) % 0.9).toFixed(2) + 's';
+      html += '<div style="position:absolute;left:' + left + ';top:' + top + ';width:' + size + ';height:' + size + ';background:' + color + ';border-radius:' + radius + ';animation:confettiBounce ' + dur + ' ease ' + delay + ' both"></div>';
+    }
+    return html;
+  }
+
+  function screenConfetti(){
+    return '<div style="position:fixed;inset:0;pointer-events:none;overflow:hidden">' + confettiItems() + '</div>' +
+      '<div style="animation:pop .5s ease both;text-align:center;z-index:2;display:flex;flex-direction:column;align-items:center;gap:12px">' +
+        '<div style="font-size:52px;animation:pulseHeart .6s ease-in-out infinite">🎉</div>' +
+        '<div style="font-size:30px;font-weight:900;color:#e91e63">Yayyyy!!</div>' +
+        '<div style="font-size:17px;color:#c2185b;font-weight:700">you unwrapped it! 💜</div>' +
+      '</div>';
+  }
+
+  function screenEnvelope(){
+    return '<div style="animation:pop .5s ease both;display:flex;flex-direction:column;align-items:center;gap:26px;text-align:center;padding:40px 24px">' +
+      '<div id="envelopeBtn" style="position:relative;width:290px;height:175px;cursor:pointer">' +
+        '<div style="position:absolute;inset:0;background:#f06292;border-radius:8px;box-shadow:0 14px 32px rgba(240,98,146,.4);overflow:hidden">' +
+          '<div style="position:absolute;bottom:0;left:0;width:0;height:0;border-bottom:88px solid #e8537a;border-right:145px solid transparent"></div>' +
+          '<div style="position:absolute;bottom:0;right:0;width:0;height:0;border-bottom:88px solid #e8537a;border-left:145px solid transparent"></div>' +
+        '</div>' +
+        '<div style="position:absolute;top:0;left:0;right:0;height:105px;overflow:hidden;pointer-events:none">' +
+          '<div style="position:absolute;top:0;left:0;width:0;height:0;border-top:105px solid #e91e63;border-right:145px solid transparent"></div>' +
+          '<div style="position:absolute;top:0;right:0;width:0;height:0;border-top:105px solid #e91e63;border-left:145px solid transparent"></div>' +
+        '</div>' +
+        '<div style="position:absolute;top:13px;left:0;right:0;text-align:center;color:rgba(255,255,255,.95);font-size:11px;font-weight:900;letter-spacing:2.5px;z-index:5;font-family:\'Nunito\',sans-serif">OPEN ME!</div>' +
+        '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-40%);width:52px;height:52px;background:#b71c1c;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:white;box-shadow:0 4px 12px rgba(183,28,28,.45);z-index:6">♥</div>' +
+      '</div>' +
+      '<div style="font-size:22px;color:#e91e63;font-weight:700">(~ 3~)♥</div>' +
+      '<div style="font-size:14px;color:#f48fb1;font-weight:600">tap the envelope to open!</div>' +
+    '</div>';
+  }
+
+  function screenLetter(){
+    return '<div style="animation:slideUp .45s ease both;width:100%;max-width:400px;height:100vh;max-height:680px;display:flex;flex-direction:column;border-radius:20px;overflow:hidden;box-shadow:0 14px 36px rgba(233,30,99,.18);margin:16px">' +
+      '<div style="background:#fce4ec;padding:15px 18px;display:flex;align-items:center;justify-content:space-between;flex:none">' +
+        '<div style="font-size:15px;font-weight:800;color:#c2185b">A Letter for ' + escHtml(CONFIG.name) + ' 💌</div>' +
+        '<button id="btnLetterClose" style="width:30px;height:30px;border:none;border-radius:50%;background:#f48fb1;color:white;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:900;line-height:1">×</button>' +
+      '</div>' +
+      '<div style="background:white;flex:1;overflow-y:auto;padding:26px 24px;-webkit-overflow-scrolling:touch">' +
+        '<div style="font-size:19px;font-weight:900;color:#c2185b;margin-bottom:22px">My dearest ' + escHtml(CONFIG.name) + ',</div>' +
+        '<div style="font-size:14.5px;color:#555;line-height:2.1;font-weight:600;white-space:pre-line">' + escHtml(CONFIG.letter) + '</div>' +
+        '<div style="margin-top:28px;font-size:14px;font-weight:800;color:#e91e63">— always yours 🤍</div>' +
+        '<div style="height:8px"></div>' +
+        '<div style="text-align:center;margin-top:10px">' +
+          '<button id="btnNext" class="btn-main" style="padding:13px 36px;font-size:15px">Continue 💕</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function screenSong(){
+    return '<div style="animation:pop .5s ease both;display:flex;flex-direction:column;align-items:center;gap:26px;padding:40px 24px;text-align:center">' +
+      '<div style="font-size:24px;font-weight:900;color:#e91e63;line-height:1.4">here my love,<br>our song 🎵</div>' +
+      '<div style="background:white;border-radius:18px;padding:16px 18px;width:100%;max-width:310px;box-shadow:0 8px 26px rgba(233,30,99,.15);display:flex;align-items:center;gap:14px;border:2px solid #fce4ec">' +
+        '<div style="width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,#ff8a65,#e91e63);flex:none;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 4px 10px rgba(233,30,99,.25)">' + CONFIG.songEmoji + '</div>' +
+        '<div style="flex:1;text-align:left;min-width:0">' +
+          '<div style="font-size:14px;font-weight:800;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escHtml(CONFIG.songName) + '</div>' +
+          '<div style="font-size:12px;color:#999;font-weight:600;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escHtml(CONFIG.songArtist) + '</div>' +
+        '</div>' +
+        '<div style="color:#1db954;font-size:26px;flex:none">♫</div>' +
+      '</div>' +
+      '<button id="btnNext" class="btn-main" style="padding:14px 40px;font-size:16px">Continue 💕</button>' +
+    '</div>';
+  }
+
+  function screenFinal(){
+    return '<div style="animation:pop .55s ease both;display:flex;flex-direction:column;align-items:center;gap:24px;padding:40px 24px;text-align:center">' +
+      '<div style="background:white;border-radius:26px;padding:38px 30px 32px;box-shadow:0 14px 36px rgba(233,30,99,.16);max-width:340px;width:100%">' +
+        '<div style="font-size:18px;font-weight:700;color:#c2185b;line-height:1.85;white-space:pre-line">' + escHtml(CONFIG.finalMessage) + '</div>' +
+        '<div style="font-size:44px;margin-top:22px;animation:pulseHeart 1.2s ease-in-out infinite">❤️</div>' +
+      '</div>' +
+      '<button id="btnRestart" class="btn-outline">read again 🔁</button>' +
+    '</div>';
+  }
+
+  function template(){
+    switch(state.screen){
+      case 'greeting':  return screenGreeting();
+      case 'password':  return screenPassword();
+      case 'unwrap':    return screenUnwrap();
+      case 'confetti':  return screenConfetti();
+      case 'envelope':  return screenEnvelope();
+      case 'letter':    return screenLetter();
+      case 'song':      return screenSong();
+      case 'final':     return screenFinal();
+      default: return '';
+    }
+  }
+
+  var host = document.getElementById('screenHost');
+
+  function bindEvents(){
+    var btnNext = host.querySelector('#btnNext');
+    if (btnNext) btnNext.addEventListener('click', next);
+    var btnLetterClose = host.querySelector('#btnLetterClose');
+    if (btnLetterClose) btnLetterClose.addEventListener('click', next);
+    var btnRestart = host.querySelector('#btnRestart');
+    if (btnRestart) btnRestart.addEventListener('click', restart);
+    var giftBox = host.querySelector('#giftBox');
+    if (giftBox) giftBox.addEventListener('click', doTap);
+    var envelopeBtn = host.querySelector('#envelopeBtn');
+    if (envelopeBtn) envelopeBtn.addEventListener('click', openEnvelope);
+    host.querySelectorAll('.key[data-k]').forEach(function(k){
+      k.addEventListener('click', function(){ pressKey(k.getAttribute('data-k')); });
+    });
+  }
+
+  function render(){
+    host.innerHTML = template();
+    bindEvents();
+  }
+
+  function setScreen(s){ state.screen = s; render(); }
+
+  function next(){
+    var i = FLOW.indexOf(state.screen);
+    if (i >= 0 && i < FLOW.length - 1) setScreen(FLOW[i + 1]);
+  }
+
+  function restart(){
+    state.screen = 'greeting';
+    state.pin = '';
+    state.taps = 0;
+    state.giftScale = 1;
+    state.envelopeOpen = false;
+    render();
+  }
+
+  // ── PASSWORD (static keypad) ──────────────────────────────────────
+
+  function updatePasswordUI(){
+    var dd = host.querySelector('#dateDisplay');
+    var dots = host.querySelector('#heartDots');
+    if (!dd || !dots) return;
+    dd.textContent = dateDisplay();
+    if (state.wrong){
+      dd.style.animation = 'none';
+      dd.offsetHeight; // reflow to restart
+      dd.style.animation = 'shake .55s ease';
+    } else {
+      dd.style.animation = 'none';
+    }
+    var spans = dots.querySelectorAll('span');
+    spans.forEach(function(s, i){ s.textContent = i < state.pin.length ? '❤️' : '🤍'; });
+  }
+
+  function pressKey(d){
+    if (d === 'del'){
+      state.pin = state.pin.slice(0, -1);
+      state.wrong = false;
+      updatePasswordUI();
+      return;
+    }
+    if (state.pin.length >= 8) return;
+    state.pin += d;
+    updatePasswordUI();
+    if (state.pin.length === 8){
+      if (state.pin === CONFIG.password){
+        setTimeout(function(){ state.pin = ''; setScreen('unwrap'); }, 380);
+      } else {
+        state.wrong = true;
+        updatePasswordUI();
+        setTimeout(function(){ state.pin = ''; state.wrong = false; updatePasswordUI(); }, 700);
+      }
+    }
+  }
+
+  // ── UNWRAP ───────────────────────────────────────────────────────
+
+  var confettiScheduled = false;
+
+  function doTap(){
+    if (state.screen !== 'unwrap') return;
+    state.taps += 1;
+    state.giftScale = 0.9;
+    render();
+    setTimeout(function(){ state.giftScale = 1; render(); }, 130);
+    if (state.taps >= 21 && !confettiScheduled){
+      confettiScheduled = true;
+      setTimeout(function(){ setScreen('confetti'); }, 300);
+      setTimeout(function(){ confettiScheduled = false; setScreen('envelope'); }, 3200);
+    }
+  }
+
+  // ── ENVELOPE ─────────────────────────────────────────────────────
+
+  function openEnvelope(){
+    if (state.envelopeOpen) return;
+    state.envelopeOpen = true;
+    setTimeout(function(){ next(); }, 500);
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
